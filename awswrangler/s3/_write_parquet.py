@@ -272,7 +272,7 @@ def to_parquet(  # pylint: disable=too-many-arguments,too-many-locals,too-many-b
     s3_additional_kwargs : Optional[Dict[str, Any]]
         Forward to botocore requests. Valid parameters: "ACL", "Metadata", "ServerSideEncryption", "StorageClass",
         "SSECustomerAlgorithm", "SSECustomerKey", "SSEKMSKeyId", "SSEKMSEncryptionContext", "Tagging",
-         "RequestPayer", "ExpectedBucketOwner".
+        "RequestPayer", "ExpectedBucketOwner".
         e.g. s3_additional_kwargs={'ServerSideEncryption': 'aws:kms', 'SSEKMSKeyId': 'YOUR_KMS_KEY_ARN'}
     sanitize_columns : bool
         True to sanitize columns names (using `wr.catalog.sanitize_table_name` and `wr.catalog.sanitize_column_name`)
@@ -293,7 +293,7 @@ def to_parquet(  # pylint: disable=too-many-arguments,too-many-locals,too-many-b
     concurrent_partitioning: bool
         If True will increase the parallelism level during the partitions writing. It will decrease the
         writing time and increase the memory usage.
-        https://github.com/awslabs/aws-data-wrangler/blob/main/tutorials/022%20-%20Writing%20Partitions%20Concurrently.ipynb
+        https://aws-data-wrangler.readthedocs.io/en/2.4.0-docs/tutorials/022%20-%20Writing%20Partitions%20Concurrently.html
     mode: str, optional
         ``append`` (Default), ``overwrite``, ``overwrite_partitions``. Only takes effect if dataset=True.
         For details check the related tutorial:
@@ -304,7 +304,7 @@ def to_parquet(  # pylint: disable=too-many-arguments,too-many-locals,too-many-b
         If True allows schema evolution (new or missing columns), otherwise a exception will be raised.
         (Only considered if dataset=True and mode in ("append", "overwrite_partitions"))
         Related tutorial:
-        https://github.com/awslabs/aws-data-wrangler/blob/main/tutorials/014%20-%20Schema%20Evolution.ipynb
+        https://aws-data-wrangler.readthedocs.io/en/2.4.0-docs/tutorials/014%20-%20Schema%20Evolution.html
     database : str, optional
         Glue/Athena catalog: Database name.
     table : str, optional
@@ -814,7 +814,7 @@ def store_parquet_metadata(  # pylint: disable=too-many-arguments
     s3_additional_kwargs : Optional[Dict[str, Any]]
         Forward to botocore requests. Valid parameters: "ACL", "Metadata", "ServerSideEncryption", "StorageClass",
         "SSECustomerAlgorithm", "SSECustomerKey", "SSEKMSKeyId", "SSEKMSEncryptionContext", "Tagging",
-         "RequestPayer", "ExpectedBucketOwner".
+        "RequestPayer", "ExpectedBucketOwner".
         e.g. s3_additional_kwargs={'ServerSideEncryption': 'aws:kms', 'SSEKMSKeyId': 'YOUR_KMS_KEY_ARN'}
     boto3_session : boto3.Session(), optional
         Boto3 Session. The default boto3 session will be used if boto3_session receive None.
