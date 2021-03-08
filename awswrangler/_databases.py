@@ -74,18 +74,20 @@ def _get_connection_attributes_from_secrets_manager(
     )
 
 
-def _get_connection_attributes_from_map(connection_details: Optional[Dict[str, str]]
-) -> ConnectionAttributes:
+def _get_connection_attributes_from_map(connection_details: Optional[Dict[str, str]]) -> ConnectionAttributes:
     required_fields: list[str] = ["user", "pass", "host", "port", "dbname", "kind"]
     if all(field in connection_details.keys() for field in required_fields):
-        return ConnectionAttributes(
-            kind=connection_details["kind"],
-            user=connection_details["user"],
-            password=connection_details["pass"],
-            host=connection_details["host"],
-            port=int(connection_details["port"]),
-            database=connection_details["dbname"],
-        )
+        if connection_details["kind"] == "redshift":
+            return ConnectionAttributes(
+                kind=connection_details["kind"],
+                user=connection_details["user"],
+                password=connection_details["pass"],
+                host=connection_details["host"],
+                port=int(connection_details["port"]),
+                database=connection_details["dbname"],
+            )
+        else:
+            raise NotImplementedError(f"Support for kind {connection_details['kind']} is not implemented yet.")
     else:
         raise exceptions.InvalidConnection(f"All the required fields({required_fields}) must be set when using a map.")
 
@@ -96,7 +98,7 @@ def get_connection_attributes(
     catalog_id: Optional[str] = None,
     dbname: Optional[str] = None,
     boto3_session: Optional[boto3.Session] = None,
-    connection_details: Optional[Dict[str, str]] = None
+    connection_details: Optional[Dict[str, str]] = None,
 ) -> ConnectionAttributes:
     """Get Connection Attributes."""
     if connection is None and secret_id is None and connection_details is None:

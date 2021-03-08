@@ -325,7 +325,7 @@ def connect(
 
     Note
     ----
-    You MUST pass a `connection` OR `secret_id`
+    You MUST pass a `connection`, `secret_id` OR `connection_details`
 
 
     https://github.com/aws/amazon-redshift-python-driver
@@ -340,6 +340,9 @@ def connect(
     catalog_id : str, optional
         The ID of the Data Catalog.
         If none is provided, the AWS account ID is used by default.
+    connection_details: Optional[Dict[str, str]]
+        A key-value dictionary that holds the information for a redshift connection.
+        Values are: user, pass, host, port, dbname, kind. Currently only supports Redshift.
     dbname: Optional[str]
         Optional database name to overwrite the stored one.
     boto3_session : boto3.Session(), optional
@@ -386,11 +389,31 @@ def connect(
     >>>     print(cursor.fetchall())
     >>> con.close()
 
+    Fetching a Redshift connection from Connection Details
+    >>> import awswrangler as wr
+    >>> details = {}
+    >>> details["user"] = "MY_USER"
+    >>> details["pass"] = "MY_PASS"
+    >>> details["host"] = "DB_HOST"
+    >>> details["port"] = "DB_PORT"
+    >>> details["dbname"] = "DB_USER"
+    >>> details["kind"] = "redshift"
+    >>> con = wr.redshift.connect(connection_details=details)
+    >>> with con.cursor() as cursor:
+    >>>     cursor.execute("SELECT 1")
+    >>>     print(cursor.fetchall())
+    >>> con.close()
+
     """
     attrs: _db_utils.ConnectionAttributes = _db_utils.get_connection_attributes(
-        connection=connection, secret_id=secret_id, catalog_id=catalog_id, dbname=dbname, boto3_session=boto3_session,
-        connection_details=connection_details
+        connection=connection,
+        secret_id=secret_id,
+        catalog_id=catalog_id,
+        dbname=dbname,
+        boto3_session=boto3_session,
+        connection_details=connection_details,
     )
+
     if attrs.kind != "redshift":
         raise exceptions.InvalidDatabaseType(
             f"Invalid connection type ({attrs.kind}. It must be a redshift connection.)"
