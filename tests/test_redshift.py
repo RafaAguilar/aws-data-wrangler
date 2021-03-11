@@ -831,6 +831,7 @@ def test_copy_unload_creds(path, redshift_table):
         mode="overwrite",
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
     )
     df2 = wr.redshift.unload(
         sql=f"SELECT * FROM public.{redshift_table}",
@@ -839,6 +840,7 @@ def test_copy_unload_creds(path, redshift_table):
         keep_files=False,
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
     )
     assert df2.shape == (3, 1)
     wr.redshift.copy(
@@ -850,6 +852,7 @@ def test_copy_unload_creds(path, redshift_table):
         mode="append",
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
     )
     df2 = wr.redshift.unload(
         sql=f"SELECT * FROM public.{redshift_table}",
@@ -858,6 +861,7 @@ def test_copy_unload_creds(path, redshift_table):
         keep_files=False,
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
     )
     assert df2.shape == (6, 1)
     dfs = wr.redshift.unload(
@@ -868,6 +872,7 @@ def test_copy_unload_creds(path, redshift_table):
         chunked=True,
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
     )
     for chunk in dfs:
         assert len(chunk.columns) == 1
@@ -906,3 +911,29 @@ def test_failed_keep_files(path, redshift_table, databases_parameters):
             varchar_lengths={"c1": 2},
         )
     assert len(wr.s3.list_objects(path)) == 0
+
+
+def test_insert_with_column_names(redshift_table):
+    con = wr.redshift.connect(connection="aws-data-wrangler-redshift")
+    create_table_sql = (
+        f"CREATE TABLE public.{redshift_table} " "(c0 varchar(100), " "c1 integer default 42, " "c2 integer not null);"
+    )
+    with con.cursor() as cursor:
+        cursor.execute(create_table_sql)
+        con.commit()
+
+    df = pd.DataFrame({"c0": ["foo", "bar"], "c2": [1, 2]})
+
+    with pytest.raises(redshift_connector.error.ProgrammingError):
+        wr.redshift.to_sql(df=df, con=con, schema="public", table=redshift_table, mode="append", use_column_names=False)
+
+    wr.redshift.to_sql(df=df, con=con, schema="public", table=redshift_table, mode="append", use_column_names=True)
+
+    df2 = wr.redshift.read_sql_table(con=con, schema="public", table=redshift_table)
+
+    df["c1"] = 42
+    df["c0"] = df["c0"].astype("string")
+    df["c1"] = df["c1"].astype("Int64")
+    df["c2"] = df["c2"].astype("Int64")
+    df = df.reindex(sorted(df.columns), axis=1)
+    assert df.equals(df2)
